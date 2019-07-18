@@ -1,0 +1,97 @@
+##import all libraries
+import pandas as pd
+import numpy as np
+import os
+
+##set the working directory
+
+os.chdir('E:\Digit Anlyzer')
+
+##import the data
+
+train = pd.read_csv('train.csv')
+test = pd.read_csv('test.csv')
+
+##as it is an image there wont be any missing values
+
+##we divide the data
+
+Y = train['label']
+X = train.iloc[:,1:]
+
+##we are actually dividing the training data and split it to train and test again
+
+from sklearn.model_selection import train_test_split
+
+X_train,X_test,y_train,y_test = train_test_split(X,Y,test_size = 0.2, random_state = 42)
+
+##we can also scale the data which is nothing but zscore transformation
+
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train = scaler.transform(X_train)
+X_test = scaler.transform(X_test)
+
+##abbove we split the data in train to 80% train and 20%test, random is like set seed where it will start from the value where it stopped
+
+##since it is a classification problem as the digits we are calculating is till 10
+
+##import the MLP library for neural network
+
+from sklearn.neural_network import MLPClassifier
+
+MLP = MLPClassifier(hidden_layer_sizes=(5,5,5),solver = 'adam', verbose = True)
+
+##'adam' is adaptive mobility where it knows the value where to move and it jumps to that value, and not like schotastic gradient where it checks each value
+
+MLP.fit(X_train, y_train)
+
+Y_Preds_Train_MLP = MLP.predict(X_train)
+Y_Preds_Test_MLP = MLP.predict(X_test)
+
+##since calssification we calculate the confusing matrix
+
+from sklearn.metrics import confusion_matrix
+
+
+cm_train_mlp = confusion_matrix(y_train,Y_Preds_Train_MLP)
+
+cm_test_mlp = confusion_matrix(y_test,Y_Preds_Test_MLP)
+
+##since it can be itearted and tweaking can be done so we modified the layer sizes
+
+MLP = MLPClassifier(hidden_layer_sizes=(50,50,50),solver = 'lbfgs', verbose = True, max_iter = 300)
+
+MLP.fit(X_train, y_train)
+
+Y_Preds_Train_MLP = MLP.predict(X_train)
+Y_Preds_Test_MLP = MLP.predict(X_test)
+
+cm_train_mlp = confusion_matrix(y_train,Y_Preds_Train_MLP)
+
+cm_test_mlp = confusion_matrix(y_test,Y_Preds_Test_MLP)
+
+##in the above solvers we used, 'adam' is better, so we apply it on test data, the below is applied after the scaling is done
+
+MLP = MLPClassifier(hidden_layer_sizes=(50,50,50),solver = 'adam', verbose = True, max_iter = 300)
+
+MLP.fit(X_train, y_train)
+
+Y_Preds_Train_MLP = MLP.predict(X_train)
+Y_Preds_Test_MLP = MLP.predict(X_test)
+
+cm_train_mlp = confusion_matrix(y_train,Y_Preds_Train_MLP)
+
+cm_test_mlp = confusion_matrix(y_test,Y_Preds_Test_MLP)
+
+####apply on test data set###
+
+test_scale = scaler.transform(test)
+
+preds_test = MLP.predict(test_scale)
+
+preds_test = pd.DataFrame(preds_test)
+
+preds_test.to_csv('output.csv')
